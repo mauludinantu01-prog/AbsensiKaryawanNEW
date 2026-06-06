@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Absensi Online — PT Swadharma Utama Prima</title>
+<script defer src="https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/dist/face-api.min.js"></script>
+
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ═══════════════════════════════════════════
+   RESET & ROOT
+═══════════════════════════════════════════ */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --primary   :#0d9488;
+  --primary-d :#0f766e;
+  --primary-l :#ccfbf1;
+  --success   :#16a34a;
+  --warning   :#d97706;
+  --danger    :#dc2626;
+  --info      :#0284c7;
+  --bg        :#f0fdfa;
+  --card      :#ffffff;
+  --text      :#134e4a;
+  --muted     :#5eaaa8;
+  --border    :#99f6e4;
+  --radius    :14px;
+  --shadow    :0 2px 20px rgba(13,148,136,.10);
+  --font      :'Plus Jakarta Sans',system-ui,sans-serif;
+}
+html,body{height:100%;font-family:var(--font);background:var(--bg);color:var(--text)}
+
+/* LAYOUT */
+#app{display:flex;flex-direction:column;min-height:100vh}
+
+/* NAVBAR */
+.navbar{background:linear-gradient(135deg,var(--primary),var(--primary-d));color:#fff;padding:.9rem 1.4rem;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 16px rgba(13,148,136,.30)}
+.navbar h1{font-size:1rem;font-weight:700}
+.navbar .nav-right{display:flex;align-items:center;gap:.8rem}
+.avatar-sm{width:34px;height:34px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.5)}
+.btn-logout{background:rgba(255,255,255,.18);border:none;color:#fff;padding:.38rem .8rem;
+  border-radius:8px;cursor:pointer;font-size:.8rem;transition:.2s}
+.btn-logout:hover{background:rgba(255,255,255,.3)}
+
+/* MAIN */
+main{flex:1;padding:1.2rem;max-width:900px;margin:0 auto;width:100%}
+
+/* TABS */
+.tab-bar{display:flex;gap:.5rem;margin-bottom:1.2rem;background:var(--card);
+  padding:.4rem;border-radius:12px;box-shadow:var(--shadow);border:1px solid var(--border)}
+.tab-btn{flex:1;border:none;background:transparent;padding:.55rem .4rem;border-radius:9px;
+  cursor:pointer;font-size:.78rem;font-weight:600;color:var(--muted);transition:.2s;
+  display:flex;align-items:center;justify-content:center;gap:.35rem}
+.tab-btn.active{background:var(--primary);color:#fff;box-shadow:0 2px 8px rgba(13,148,136,.3)}
+.tab-btn:hover:not(.active){background:var(--primary-l);color:var(--primary-d)}
+
+/* CARD */
+.card{background:var(--card);border-radius:var(--radius);padding:1.2rem;
+  box-shadow:var(--shadow);margin-bottom:1rem}
+.card-title{font-size:.9rem;font-weight:700;color:var(--primary);margin-bottom:.9rem;
+  display:flex;align-items:center;gap:.4rem;
+  padding-left:.6rem;border-left:3px solid var(--primary)}
+
+/* STAT GRID */
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:.7rem}
+@media(min-width:600px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-card{border-radius:12px;padding:1rem;text-align:center;color:#fff}
+.stat-card.blue  {background:linear-gradient(135deg,#0d9488,#14b8a6)}
+.stat-card.green {background:linear-gradient(135deg,#16a34a,#22c55e)}
+.stat-card.yellow{background:linear-gradient(135deg,#d97706,#f59e0b)}
+.stat-card.red   {background:linear-gradient(135deg,#dc2626,#ef4444)}
+.stat-card h3{font-size:1.8rem;font-weight:800}
+.stat-card p {font-size:.73rem;opacity:.9;margin-top:.15rem}
+
+/* FORM */
+.form-group{margin-bottom:.9rem}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--muted);margin-bottom:.3rem}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;border:1.5px solid var(--border);border-radius:9px;
+  padding:.6rem .85rem;font-size:.88rem;color:var(--text);background:#fff;
+  transition:.2s;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(13,148,136,.12)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:.4rem;
+  border:none;border-radius:10px;padding:.65rem 1.2rem;font-size:.85rem;font-weight:600;
+  cursor:pointer;transition:.2s;white-space:nowrap}
+.btn-primary{background:var(--primary);color:#fff}.btn-primary:hover{background:var(--primary-d)}
+.btn-success{background:var(--success);color:#fff}.btn-success:hover{background:#059669}
+.btn-danger {background:var(--danger); color:#fff}.btn-danger:hover{background:#dc2626}
+.btn-warning{background:var(--warning);color:#fff}
+.btn-info   {background:var(--info);   color:#fff}
+.btn-block{width:100%}
+.btn:disabled{opacity:.55;cursor:not-allowed}
+
+/* BADGE */
+.badge{display:inline-flex;align-items:center;padding:.2rem .6rem;border-radius:20px;font-size:.72rem;font-weight:600}
+.badge-success{background:#dcfce7;color:#166534}
+.badge-warning{background:#fef9c3;color:#854d0e}
+.badge-danger {background:#fee2e2;color:#991b1b}
+.badge-info   {background:#dbeafe;color:#1e40af}
+.badge-muted  {background:#f1f5f9;color:#475569}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;border-radius:10px;border:1px solid var(--border)}
+table{width:100%;border-collapse:collapse;font-size:.82rem}
+thead{background:var(--primary);color:#fff}
+th{padding:.65rem .8rem;text-align:left;font-weight:600;white-space:nowrap}
+td{padding:.6rem .8rem;border-bottom:1px solid var(--border);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:#f0fdfa}
+
+/* CAMERA */
+#cam-box{position:relative;width:100%;max-width:420px;margin:0 auto}
+#video{width:100%;border-radius:12px;background:#000;display:block;transform:scaleX(-1)}
+#canvas-overlay{position:absolute;top:0;left:0;width:100%;height:100%;border-radius:12px;transform:scaleX(-1)}
+.cam-status{text-align:center;margin:.6rem 0;font-size:.82rem;font-weight:600}
+.cam-status.ok  {color:var(--success)}
+.cam-status.warn{color:var(--warning)}
+.cam-status.err {color:var(--danger)}
+
+/* CLOCK */
+.clock-display{text-align:center;padding:1rem 0}
+.clock-time{font-size:2.8rem;font-weight:800;color:var(--primary);letter-spacing:2px;
+  text-shadow:0 1px 8px rgba(13,148,136,.15)}
+.clock-date{color:var(--muted);font-size:.85rem;margin-top:.2rem}
+
+/* GEO PILL */
+.geo-pill{display:flex;align-items:center;gap:.5rem;background:#ccfbf1;border:1px solid #5eead4;
+  border-radius:8px;padding:.5rem .8rem;font-size:.78rem;color:#0f766e;margin:.6rem 0}
+.geo-pill.err{background:#fff7ed;border-color:#fed7aa;color:#9a3412}
+
+/* PROFILE */
+.profile-header{display:flex;align-items:center;gap:1rem;padding:.5rem 0 1rem}
+.profile-avatar{width:70px;height:70px;border-radius:50%;object-fit:cover;border:3px solid var(--primary);box-shadow:0 0 0 4px var(--primary-l)}
+.profile-info h2{font-size:1.05rem;font-weight:700}
+.profile-info p {color:var(--muted);font-size:.8rem;margin-top:.2rem}
+
+/* HISTORY */
+.hist-item{display:flex;align-items:center;gap:.8rem;padding:.7rem 0;border-bottom:1px solid var(--border)}
+.hist-item:last-child{border-bottom:none}
+.hist-icon{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;flex-shrink:0}
+.hist-icon.hadir    {background:#dcfce7}
+.hist-icon.terlambat{background:#fef9c3}
+.hist-icon.alpha    {background:#fee2e2}
+.hist-detail{flex:1}
+.hist-detail strong{font-size:.85rem}
+.hist-detail span  {display:block;color:var(--muted);font-size:.75rem}
+
+/* CHART BAR */
+.chart-row{display:flex;align-items:flex-end;gap:.4rem;height:80px}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:.2rem}
+.bar{width:100%;border-radius:4px 4px 0 0;transition:.4s;min-height:4px}
+.bar.h{background:var(--primary)}
+.bar.t{background:var(--warning)}
+.bar-label{font-size:.65rem;color:var(--muted)}
+
+/* LOGIN */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,#0d9488 0%,#0f766e 50%,#065f46 100%);padding:1.5rem;
+  position:relative;overflow:hidden}
+#login-screen::before{content:'';position:absolute;inset:0;
+  background:radial-gradient(circle at 20% 80%, rgba(255,255,255,.08) 0%, transparent 50%),
+             radial-gradient(circle at 80% 20%, rgba(255,255,255,.06) 0%, transparent 50%);
+  pointer-events:none}
+.login-card{background:#fff;border-radius:20px;padding:2rem 1.8rem;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(13,148,136,.25);border-top:4px solid var(--primary)}
+.login-logo{text-align:center;margin-bottom:1.5rem}
+.login-logo h2{font-size:1.05rem;font-weight:700;color:var(--primary);margin-top:.6rem}
+.login-logo p {color:var(--muted);font-size:.78rem}
+
+/* TOAST */
+#toast{position:fixed;bottom:1.4rem;left:50%;transform:translateX(-50%) translateY(100px);
+  background:#134e4a;color:#fff;padding:.7rem 1.4rem;border-radius:10px;font-size:.83rem;
+  z-index:9999;opacity:0;transition:.35s;pointer-events:none;max-width:90vw;text-align:center}
+#toast.show   {opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.success{background:var(--success)}
+#toast.error  {background:var(--danger)}
+#toast.warning{background:var(--warning)}
+
+/* LOADING */
+#loading{position:fixed;inset:0;background:rgba(255,255,255,.7);display:none;
+  align-items:center;justify-content:center;z-index:9990;flex-direction:column;gap:.8rem}
+#loading.show{display:flex}
+.spinner{width:44px;height:44px;border:4px solid var(--border);border-top-color:var(--primary);
+  border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* RESPONSIVE */
+@media(max-width:480px){
+  .clock-time{font-size:2.2rem}
+  main{padding:.8rem}
+  .card{padding:.9rem}
+}
+</style>
+</head>
+<body>
+
+<!-- ─── LOGIN ─── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">
+      <div style="width:64px;height:64px;background:linear-gradient(135deg,#0d9488,#0f766e);
+        border-radius:16px;display:flex;align-items:center;justify-content:center;
+        font-size:2rem;margin:0 auto">🏢</div>
+      <h2>PT Swadharma Utama Prima</h2>
+      <p>Sistem Absensi Online v2.1</p>
+    </div>
+    <div class="form-group">
+      <label>📧 Email</label>
+      <input type="email" id="login-email" placeholder="email@perusahaan.com" autocomplete="email">
+    </div>
+    <div class="form-group">
+      <label>🔒 Password</label>
+      <input type="password" id="login-pass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary btn-block" onclick="doLogin()" style="margin-top:.5rem">
+      🚀 Masuk
+    </button>
+    <p style="text-align:center;color:var(--muted);font-size:.75rem;margin-top:1rem">
+      © 2026 PT Swadharma Utama Prima
+    </p>
+  </div>
+</div>
+
+<!-- ─── MAIN APP ─── -->
+<div id="app" style="display:none">
+
+  <nav class="navbar">
+    <h1>🏢 Absensi Online</h1>
+    <div class="nav-right">
+      <img id="nav-avatar" class="avatar-sm" src="" alt="avatar">
+      <span id="nav-name" style="font-size:.82rem;font-weight:600"></span>
+      <button class="btn-logout" onclick="doLogout()">Keluar</button>
+    </div>
+  </nav>
+
+  <main>
+    <div class="tab-bar" id="tab-bar">
+      <button class="tab-btn active" data-tab="absensi" onclick="switchTab(this)">📷 Absensi</button>
+      <button class="tab-btn" data-tab="riwayat"  onclick="switchTab(this)">📋 Riwayat</button>
+      <button class="tab-btn" data-tab="izin"     onclick="switchTab(this)">📝 Izin</button>
+      <button class="tab-btn" data-tab="profil"   onclick="switchTab(this)">👤 Profil</button>
+      <button class="tab-btn" id="tab-admin-btn" data-tab="admin" onclick="switchTab(this)" style="display:none">
+        🛠 Admin
+      </button>
+    </div>
+
+    <!-- ╔═ TAB: ABSENSI ═╗ -->
+    <div id="tab-absensi">
+      <div class="card">
+        <div class="clock-display">
+          <div class="clock-time" id="clock">00:00:00</div>
+          <div class="clock-date" id="clock-date"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📊 Status Absensi Hari Ini</div>
+        <div id="today-info" style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+          <div style="background:#f0fdfa;border-radius:8px;padding:.7rem;text-align:center">
+            <div style="font-size:1.4rem">⏰</div>
+            <div style="font-size:.72rem;color:var(--muted)">Clock In</div>
+            <div id="td-in" style="font-weight:700;color:var(--primary)">—</div>
+          </div>
+          <div style="background:#f0fdfa;border-radius:8px;padding:.7rem;text-align:center">
+            <div style="font-size:1.4rem">🏁</div>
+            <div style="font-size:.72rem;color:var(--muted)">Clock Out</div>
+            <div id="td-out" style="font-weight:700;color:var(--success)">—</div>
+          </div>
+        </div>
+        <div id="td-status-wrap" style="margin-top:.6rem;text-align:center"></div>
+      </div>
+
+      <div id="geo-info" class="geo-pill">📍 Memuat lokasi...</div>
+
+      <div class="card">
+        <div class="card-title">📷 Verifikasi Wajah</div>
+        <div id="cam-box">
+          <video id="video" autoplay muted playsinline></video>
+          <canvas id="canvas-overlay"></canvas>
+        </div>
+        <div class="cam-status warn" id="cam-status">⏳ Memuat model pengenalan wajah...</div>
+        <div style="display:flex;gap:.6rem;margin-top:.8rem;flex-wrap:wrap">
+          <button class="btn btn-success btn-block" id="btn-clock-in" onclick="doClock('in')" disabled>
+            ✅ Clock In
+          </button>
+          <button class="btn btn-danger btn-block" id="btn-clock-out" onclick="doClock('out')" disabled>
+            🏁 Clock Out
+          </button>
+        </div>
+        <canvas id="capture-canvas" style="display:none"></canvas>
+      </div>
+    </div>
+
+    <!-- ╔═ TAB: RIWAYAT ═╗ -->
+    <div id="tab-riwayat" style="display:none">
+      <div class="card">
+        <div class="card-title">📋 Riwayat Absensi</div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap">
+          <select id="hist-month" style="flex:1;min-width:100px;border:1.5px solid var(--border);
+            border-radius:9px;padding:.5rem .7rem;font-size:.83rem">
+            <option value="">Semua Bulan</option>
+          </select>
+          <select id="hist-year" style="flex:1;min-width:80px;border:1.5px solid var(--border);
+            border-radius:9px;padding:.5rem .7rem;font-size:.83rem"></select>
+          <button class="btn btn-primary" onclick="loadHistory()">🔍 Cari</button>
+        </div>
+        <div id="hist-summary" style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:.8rem"></div>
+        <div id="hist-list"></div>
+      </div>
+    </div>
+
+    <!-- ╔═ TAB: IZIN ═╗ -->
+    <div id="tab-izin" style="display:none">
+      <div class="card">
+        <div class="card-title">📝 Pengajuan Izin / Sakit / Cuti</div>
+        <div class="form-group">
+          <label>Jenis</label>
+          <select id="izin-type">
+            <option value="Sakit">🤒 Sakit</option>
+            <option value="Izin">🙏 Izin</option>
+            <option value="Cuti">🏖 Cuti Tahunan</option>
+            <option value="Dinas">✈️ Dinas Luar</option>
+          </select>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+          <div class="form-group">
+            <label>Dari Tanggal</label>
+            <input type="date" id="izin-start">
+          </div>
+          <div class="form-group">
+            <label>Sampai Tanggal</label>
+            <input type="date" id="izin-end">
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Keterangan</label>
+          <textarea id="izin-ket" rows="3" placeholder="Tuliskan keterangan..."
+            style="width:100%;border:1.5px solid var(--border);border-radius:9px;
+            padding:.6rem .85rem;font-size:.88rem;resize:vertical"></textarea>
+        </div>
+        <button class="btn btn-primary btn-block" onclick="submitIzin()">📤 Kirim Pengajuan</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📄 Riwayat Pengajuan</div>
+        <div id="approval-list"></div>
+      </div>
+    </div>
+
+    <!-- ╔═ TAB: PROFIL ═╗ -->
+    <div id="tab-profil" style="display:none">
+      <div class="card">
+        <div class="profile-header">
+          <img id="prof-avatar" class="profile-avatar" src="" alt="avatar">
+          <div class="profile-info">
+            <h2 id="prof-name">—</h2>
+            <p id="prof-id">—</p>
+            <div id="prof-status-badge" style="margin-top:.4rem"></div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+          <div class="info-row" id="pi-email"   data-label="Email"></div>
+          <div class="info-row" id="pi-phone"   data-label="No. HP"></div>
+          <div class="info-row" id="pi-unit"    data-label="Unit Kerja"></div>
+          <div class="info-row" id="pi-jabatan" data-label="Jabatan"></div>
+          <div class="info-row" id="pi-shift"   data-label="Shift"></div>
+          <div class="info-row" id="pi-join"    data-label="Bergabung"></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">📊 Statistik Bulan Ini</div>
+        <div id="prof-stats" class="stat-grid"></div>
+      </div>
+    </div>
+
+    <!-- ╔═ TAB: ADMIN ═╗ -->
+    <div id="tab-admin" style="display:none">
+
+      <div class="card">
+        <div class="card-title">🏠 Dashboard Hari Ini</div>
+        <div class="stat-grid" id="admin-stats"></div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📈 Kehadiran 7 Hari Terakhir</div>
+        <div id="weekly-chart"></div>
+        <div style="display:flex;gap:1rem;margin-top:.5rem;font-size:.72rem">
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--primary);border-radius:2px"></span> Hadir</span>
+          <span><span style="display:inline-block;width:10px;height:10px;background:var(--warning);border-radius:2px"></span> Terlambat</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📋 Rekap Absensi</div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.8rem;flex-wrap:wrap">
+          <select id="adm-month" style="flex:1;min-width:100px;border:1.5px solid var(--border);
+            border-radius:9px;padding:.5rem .7rem;font-size:.83rem">
+            <option value="">Semua Bulan</option>
+          </select>
+          <select id="adm-year" style="flex:1;min-width:80px;border:1.5px solid var(--border);
+            border-radius:9px;padding:.5rem .7rem;font-size:.83rem"></select>
+          <button class="btn btn-primary" onclick="loadAdminAtt()">🔍 Lihat</button>
+          <button class="btn btn-success" onclick="exportCSV()">📥 Export CSV</button>
+        </div>
+        <div id="adm-table-wrap" class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Nama</th><th>Tanggal</th><th>Hari</th>
+                <th>Shift</th><th>Masuk</th><th>Keluar</th><th>Durasi</th>
+                <th>Status</th><th>Lokasi</th></tr>
+            </thead>
+            <tbody id="adm-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">👥 Data Karyawan</div>
+        <div class="tbl-wrap">
+          <table>
+            <thead>
+              <tr><th>ID</th><th>Nama</th><th>No. HP</th><th>Unit</th><th>Jabatan</th><th>Shift</th><th>Status</th></tr>
+            </thead>
+            <tbody id="emp-table-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">⚙️ Pengaturan Sistem</div>
+        <div class="form-group">
+          <label>Nama Perusahaan</label>
+          <input type="text" id="set-company" readonly>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+          <div class="form-group">
+            <label>Toleransi Terlambat (menit)</label>
+            <input type="number" id="set-late">
+          </div>
+          <div class="form-group">
+            <label>Radius Absensi (meter)</label>
+            <input type="number" id="set-radius">
+          </div>
+          <div class="form-group">
+            <label>Latitude Kantor</label>
+            <input type="text" id="set-lat">
+          </div>
+          <div class="form-group">
+            <label>Longitude Kantor</label>
+            <input type="text" id="set-lng">
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+          <input type="checkbox" id="set-geo" style="width:16px;height:16px">
+          <label for="set-geo" style="font-size:.85rem">Wajibkan Absensi di Lokasi Kantor</label>
+        </div>
+        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.8rem">
+          <input type="checkbox" id="set-face" style="width:16px;height:16px">
+          <label for="set-face" style="font-size:.85rem">Wajibkan Face Recognition</label>
+        </div>
+        <button class="btn btn-primary" onclick="saveSettings()">💾 Simpan Settings</button>
+      </div>
+
+      <div class="card">
+        <div class="card-title">📝 Pengajuan Izin Masuk</div>
+        <div id="admin-approvals"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+<div id="loading"><div class="spinner"></div><span id="loading-msg">Memuat...</span></div>
+
+<script>
+// ═══════════════════════════════════════════════════════════
+//  CONFIG
+//  Ganti YOUR_DEPLOYMENT_ID dengan Web App URL dari Apps Script
+//  Cara deploy: Extensions → Apps Script → Deploy → New deployment
+// ═══════════════════════════════════════════════════════════
+const API_URL = "https://script.google.com/macros/s/AKfycbyp3t3wR3oJOrTG5k2hp0eMaRhQEJWCFRCT2MU6xxVy6C-NOe95P4iQ5EwhvEhMJISJ2w/exec";
+
+// ═══════════════════════════════════════════════════════════
+//  STATE
+// ═══════════════════════════════════════════════════════════
+let session          = null;   // { name, email, role, employee }
+let faceDetected     = false;
+let stream           = null;
+let geoCoords        = null;
+let geoAddress       = "";
+let faceModelsLoaded = false;
+let detectionInterval = null;
+let todayData        = {};
+
+// ═══════════════════════════════════════════════════════════
+//  KONSTANTA
+// ═══════════════════════════════════════════════════════════
+const DAYS   = ["Minggu","Senin","Selasa","Rabu","Kamis","Jumat","Sabtu"];
+const MONTHS = ["Januari","Februari","Maret","April","Mei","Juni",
+                "Juli","Agustus","September","Oktober","November","Desember"];
+
+// ═══════════════════════════════════════════════════════════
+//  API HELPERS
+// ═══════════════════════════════════════════════════════════
+async function api(action, data = {}) {
+  const params = new URLSearchParams({ action, ...data });
+  const res = await fetch(`${API_URL}?${params}`);
+  return res.json();
+}
+
+async function apiPost(action, data = {}) {
+  const res = await fetch(API_URL, {
+    method  : "POST",
+    headers : { "Content-Type": "application/json" },
+    body    : JSON.stringify({ action, ...data })
+  });
+  return res.json();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  UI HELPERS
+// ═══════════════════════════════════════════════════════════
+function showToast(msg, type = "success", ms = 3000) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.className = "show " + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.className = "", ms);
+}
+
+function showLoading(msg = "Memuat...") {
+  document.getElementById("loading-msg").textContent = msg;
+  document.getElementById("loading").classList.add("show");
+}
+
+function hideLoading() {
+  document.getElementById("loading").classList.remove("show");
+}
+
+// ═══════════════════════════════════════════════════════════
+//  CLOCK
+// ═══════════════════════════════════════════════════════════
+function updateClock() {
+  const now = new Date();
+  document.getElementById("clock").textContent =
+    String(now.getHours()).padStart(2,"0") + ":" +
+    String(now.getMinutes()).padStart(2,"0") + ":" +
+    String(now.getSeconds()).padStart(2,"0");
+  document.getElementById("clock-date").textContent =
+    `${DAYS[now.getDay()]}, ${now.getDate()} ${MONTHS[now.getMonth()]} ${now.getFullYear()}`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  AUTH
+// ═══════════════════════════════════════════════════════════
+async function doLogin() {
+  const email    = document.getElementById("login-email").value.trim();
+  const password = document.getElementById("login-pass").value.trim();
+  if (!email || !password) return showToast("Isi email & password!", "warning");
+
+  showLoading("Verifikasi akun...");
+  try {
+    const res = await api("login", { email, password });
+    if (res.status === "ok") {
+      session = res.data;
+      initApp();
+    } else {
+      showToast(res.message || "Login gagal", "error");
+    }
+  } catch (e) {
+    showToast("Koneksi gagal. Pastikan API_URL sudah diset.", "error");
+  }
+  hideLoading();
+}
+
+function doLogout() {
+  session = null;
+  stopCamera();
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+}
+
+document.addEventListener("keydown", e => {
+  if (e.key === "Enter" &&
+      document.getElementById("login-screen").style.display !== "none") doLogin();
+});
+
+// ═══════════════════════════════════════════════════════════
+//  INIT APP
+// ═══════════════════════════════════════════════════════════
+function initApp() {
+  document.getElementById("login-screen").style.display = "none";
+  document.getElementById("app").style.display = "flex";
+
+  const emp = session.employee;
+  document.getElementById("nav-name").textContent = session.name.split(" ")[0];
+  document.getElementById("nav-avatar").src = avatarUrl(session.name);
+
+  if (session.role === "Admin") {
+    document.getElementById("tab-admin-btn").style.display = "";
+  }
+
+  fillMonthYear("hist-month", "hist-year");
+  fillMonthYear("adm-month",  "adm-year");
+
+  updateClock();
+  setInterval(updateClock, 1000);
+
+  getGeolocation();
+  initCamera();
+  loadTodayStatus();
+  loadProfile();
+}
+
+function avatarUrl(name) {
+  return `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=0d9488&color=fff`;
+}
+
+function fillMonthYear(monthId, yearId) {
+  const mSel = document.getElementById(monthId);
+  const ySel = document.getElementById(yearId);
+  const now  = new Date();
+
+  for (let m = 1; m <= 12; m++) {
+    const opt = new Option(MONTHS[m - 1], m);
+    if (m === now.getMonth() + 1) opt.selected = true;
+    mSel.appendChild(opt);
+  }
+  for (let y = now.getFullYear(); y >= now.getFullYear() - 2; y--) {
+    const opt = new Option(y, y);
+    if (y === now.getFullYear()) opt.selected = true;
+    ySel.appendChild(opt);
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  GEOLOCATION
+// ═══════════════════════════════════════════════════════════
+function getGeolocation() {
+  const pill = document.getElementById("geo-info");
+  if (!navigator.geolocation) {
+    pill.textContent = "⚠️ Browser tidak mendukung Geolocation";
+    pill.className = "geo-pill err";
+    return;
+  }
+  pill.textContent = "📍 Memuat lokasi GPS...";
+
+  navigator.geolocation.getCurrentPosition(
+    async pos => {
+      geoCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      geoAddress = await reverseGeocode(geoCoords.lat, geoCoords.lng);
+      pill.textContent = `📍 ${geoAddress || `${geoCoords.lat.toFixed(5)}, ${geoCoords.lng.toFixed(5)}`}`;
+      pill.className = "geo-pill";
+    },
+    () => {
+      pill.textContent = "⚠️ Izin lokasi ditolak. Absensi tetap bisa dilakukan.";
+      pill.className = "geo-pill err";
+    },
+    { enableHighAccuracy: true, timeout: 10000 }
+  );
+}
+
+async function reverseGeocode(lat, lng) {
+  try {
+    const r = await fetch(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lng}&format=json`);
+    const d = await r.json();
+    return d.display_name || "";
+  } catch { return ""; }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  FACE RECOGNITION
+// ═══════════════════════════════════════════════════════════
+async function initCamera() {
+  const status = document.getElementById("cam-status");
+  status.textContent = "⏳ Memuat model AI pengenalan wajah...";
+  status.className = "cam-status warn";
+
+  try {
+    const MODEL_URL = "https://cdn.jsdelivr.net/npm/face-api.js@0.22.2/weights";
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_URL),
+      faceapi.nets.faceLandmark68TinyNet.loadFromUri(MODEL_URL),
+      faceapi.nets.faceExpressionNet.loadFromUri(MODEL_URL)
+    ]);
+    faceModelsLoaded = true;
+    status.textContent = "✅ Model AI siap. Memulai kamera...";
+    await startCamera();
+  } catch (e) {
+    status.textContent = "❌ Gagal memuat model AI: " + e.message;
+    status.className = "cam-status err";
+  }
+}
+
+async function startCamera() {
+  const video  = document.getElementById("video");
+  const status = document.getElementById("cam-status");
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: "user", width: 640, height: 480 }
+    });
+    video.srcObject = stream;
+    await new Promise(r => video.onloadedmetadata = r);
+
+    const canvas   = document.getElementById("canvas-overlay");
+    canvas.width   = video.videoWidth;
+    canvas.height  = video.videoHeight;
+
+    status.textContent = "🔍 Mendeteksi wajah...";
+    status.className = "cam-status warn";
+    startFaceDetection();
+  } catch (e) {
+    status.textContent = "❌ Kamera tidak dapat diakses: " + e.message;
+    status.className = "cam-status err";
+  }
+}
+
+function startFaceDetection() {
+  const video  = document.getElementById("video");
+  const canvas = document.getElementById("canvas-overlay");
+  const ctx    = canvas.getContext("2d");
+  const status = document.getElementById("cam-status");
+  const opts   = new faceapi.TinyFaceDetectorOptions({ inputSize: 320, scoreThreshold: 0.5 });
+
+  detectionInterval = setInterval(async () => {
+    if (!faceModelsLoaded || video.paused || video.ended) return;
+    try {
+      const detections = await faceapi.detectAllFaces(video, opts).withFaceLandmarks(true);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      if (detections.length > 0) {
+        faceDetected = true;
+        status.textContent = `✅ Wajah terdeteksi (${detections.length})`;
+        status.className = "cam-status ok";
+
+        const resized = faceapi.resizeResults(detections, { width: canvas.width, height: canvas.height });
+        resized.forEach(d => {
+          const { x, y, width, height } = d.detection.box;
+          ctx.strokeStyle = "#0d9488"; ctx.lineWidth = 2.5;
+          ctx.strokeRect(x, y, width, height);
+          const cs = 14;
+          ctx.strokeStyle = "#14b8a6"; ctx.lineWidth = 3;
+          [[x,y],[x+width,y],[x,y+height],[x+width,y+height]].forEach(([cx,cy]) => {
+            ctx.beginPath(); ctx.moveTo(cx,cy);
+            ctx.lineTo(cx+(cx<x+width/2?cs:-cs),cy); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(cx,cy);
+            ctx.lineTo(cx,cy+(cy<y+height/2?cs:-cs)); ctx.stroke();
+          });
+        });
+        updateClockButtons();
+      } else {
+        faceDetected = false;
+        status.textContent = "🔍 Posisikan wajah ke kamera...";
+        status.className = "cam-status warn";
+        document.getElementById("btn-clock-in").disabled  = true;
+        document.getElementById("btn-clock-out").disabled = true;
+      }
+    } catch (e) { /* abaikan error per frame */ }
+  }, 400);
+}
+
+function stopCamera() {
+  clearInterval(detectionInterval);
+  if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+}
+
+function capturePhoto() {
+  const video  = document.getElementById("video");
+  const canvas = document.getElementById("capture-canvas");
+  canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+  const ctx = canvas.getContext("2d");
+  ctx.translate(canvas.width, 0); ctx.scale(-1, 1);
+  ctx.drawImage(video, 0, 0);
+  return canvas.toDataURL("image/jpeg", 0.6);
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ABSENSI — Clock In / Out
+// ═══════════════════════════════════════════════════════════
+async function loadTodayStatus() {
+  if (!session?.employee) return;
+  try {
+    const r = await api("getTodayStatus", { id_karyawan: session.employee.id });
+    if (r.status === "ok") {
+      todayData = r.data;
+      renderTodayStatus();
+      updateClockButtons();
+    }
+  } catch (e) {}
+}
+
+function renderTodayStatus() {
+  document.getElementById("td-in").textContent  = todayData.clockIn  || "—";
+  document.getElementById("td-out").textContent = todayData.clockOut || "—";
+
+  const sw = document.getElementById("td-status-wrap");
+  if (todayData.status) {
+    const cls = todayData.status === "Hadir"     ? "success" :
+                todayData.status === "Terlambat" ? "warning" : "muted";
+    sw.innerHTML = `<span class="badge badge-${cls}">${todayData.status}</span>`;
+  }
+}
+
+function updateClockButtons() {
+  const btnIn  = document.getElementById("btn-clock-in");
+  const btnOut = document.getElementById("btn-clock-out");
+  if (!faceDetected) { btnIn.disabled = true; btnOut.disabled = true; return; }
+  btnIn.disabled  =  todayData.hasClockedIn;
+  btnOut.disabled = !todayData.hasClockedIn || todayData.hasClockedOut;
+}
+
+// Satu fungsi untuk clock-in dan clock-out
+async function doClock(type) {
+  if (!faceDetected) return showToast("Wajah tidak terdeteksi!", "warning");
+  if (!session?.employee) return showToast("Data karyawan tidak ditemukan.", "error");
+
+  showLoading(type === "in" ? "Memproses Clock In..." : "Memproses Clock Out...");
+  try {
+    const photo = capturePhoto();
+    let res;
+
+    if (type === "in") {
+      res = await apiPost("clockIn", {
+        id_karyawan : session.employee.id,
+        nama        : session.employee.name,
+        shift       : session.employee.shift || "",
+        photo,
+        lat         : geoCoords?.lat || "",
+        lng         : geoCoords?.lng || "",
+        address     : geoAddress
+      });
+      if (res.status === "ok") {
+        showToast(`✅ Clock In — ${res.data.time} [${res.data.status}]`);
+        todayData = { ...todayData, hasClockedIn: true, clockIn: res.data.time, status: res.data.status };
+      }
+    } else {
+      res = await apiPost("clockOut", {
+        id_karyawan : session.employee.id,
+        photo,
+        lat : geoCoords?.lat || "",
+        lng : geoCoords?.lng || ""
+      });
+      if (res.status === "ok") {
+        showToast(`🏁 Clock Out — ${res.data.time}`);
+        todayData = { ...todayData, hasClockedOut: true, clockOut: res.data.time };
+      }
+    }
+
+    if (res.status !== "ok") showToast(res.message, "error");
+    renderTodayStatus();
+    updateClockButtons();
+  } catch (e) {
+    showToast("Gagal: " + e.message, "error");
+  }
+  hideLoading();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  RIWAYAT
+// ═══════════════════════════════════════════════════════════
+async function loadHistory() {
+  if (!session?.employee) return;
+  showLoading("Memuat riwayat...");
+  try {
+    const month = document.getElementById("hist-month").value;
+    const year  = document.getElementById("hist-year").value;
+    const r = await api("getAttendance", { id_karyawan: session.employee.id, month, year });
+    if (r.status === "ok") renderHistory(r.data);
+    else showToast(r.message, "error");
+  } catch (e) { showToast("Error: " + e.message, "error"); }
+  hideLoading();
+}
+
+function renderHistory(data) {
+  let hadir = 0, terlambat = 0, alpha = 0;
+  const icons = { "Hadir":"✅","Terlambat":"⚠️","Alpha":"❌" };
+  const cls   = { "Hadir":"hadir","Terlambat":"terlambat","Alpha":"alpha" };
+
+  const list = document.getElementById("hist-list");
+  list.innerHTML = data.length === 0
+    ? `<p style="color:var(--muted);text-align:center;padding:1rem">Tidak ada data absensi.</p>`
+    : data.map(d => {
+        if (d.status === "Hadir") hadir++;
+        else if (d.status === "Terlambat") terlambat++;
+        else alpha++;
+        const c = cls[d.status] || "alpha";
+        return `<div class="hist-item">
+          <div class="hist-icon ${c}">${icons[d.status] || "❓"}</div>
+          <div class="hist-detail">
+            <strong>${d.date} (${d.hari || ""})</strong>
+            <span>Shift: ${d.shift||"—"} | Masuk: <b>${d.clockIn||"—"}</b> Keluar: <b>${d.clockOut||"—"}</b>
+              ${d.durasi ? ` | ${d.durasi} jam` : ""}</span>
+          </div>
+          <span class="badge badge-${c==="hadir"?"success":c==="terlambat"?"warning":"danger"}">${d.status||"?"}</span>
+        </div>`;
+      }).join("");
+
+  document.getElementById("hist-summary").innerHTML = `
+    <div style="background:#dcfce7;border-radius:8px;padding:.6rem;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#166534">${hadir}</div>
+      <div style="font-size:.72rem;color:#166534">Hadir</div>
+    </div>
+    <div style="background:#fef9c3;border-radius:8px;padding:.6rem;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#854d0e">${terlambat}</div>
+      <div style="font-size:.72rem;color:#854d0e">Terlambat</div>
+    </div>
+    <div style="background:#fee2e2;border-radius:8px;padding:.6rem;text-align:center">
+      <div style="font-size:1.3rem;font-weight:800;color:#991b1b">${alpha}</div>
+      <div style="font-size:.72rem;color:#991b1b">Alpha</div>
+    </div>`;
+}
+
+// ═══════════════════════════════════════════════════════════
+//  IZIN
+// ═══════════════════════════════════════════════════════════
+async function submitIzin() {
+  if (!session?.employee) return;
+  const type  = document.getElementById("izin-type").value;
+  const start = document.getElementById("izin-start").value;
+  const end   = document.getElementById("izin-end").value;
+  const ket   = document.getElementById("izin-ket").value;
+  if (!start || !end) return showToast("Lengkapi tanggal!", "warning");
+
+  const dur = Math.max(1, Math.round((new Date(end) - new Date(start)) / 86400000) + 1);
+
+  showLoading("Mengirim pengajuan...");
+  try {
+    const r = await apiPost("submitApproval", {
+      id_karyawan : session.employee.id,
+      nama        : session.employee.name,
+      type, startDate: start, endDate: end,
+      duration    : dur + " hari",
+      lampiran    : ket
+    });
+    if (r.status === "ok") {
+      showToast("✅ Pengajuan berhasil dikirim!");
+      document.getElementById("izin-start").value = "";
+      document.getElementById("izin-end").value   = "";
+      document.getElementById("izin-ket").value   = "";
+      loadApprovals();
+    } else showToast(r.message, "error");
+  } catch (e) { showToast("Error: " + e.message, "error"); }
+  hideLoading();
+}
+
+async function loadApprovals() {
+  if (!session?.employee) return;
+  try {
+    const r = await api("getApprovals", { id_karyawan: session.employee.id });
+    if (r.status === "ok") renderApprovals(r.data, "approval-list");
+  } catch (e) {}
+}
+
+function renderApprovals(data, containerId) {
+  const el = document.getElementById(containerId);
+  const clsBadge = { "DITERIMA":"success","DITOLAK":"danger","MENUNGGU":"warning" };
+
+  el.innerHTML = data.length === 0
+    ? `<p style="color:var(--muted);text-align:center;padding:1rem">Belum ada pengajuan.</p>`
+    : [...data].reverse().map(d => `
+        <div class="hist-item">
+          <div style="flex:1">
+            <strong>${d.type}</strong>
+            <span style="display:block;font-size:.75rem;color:var(--muted)">
+              ${d.startDate} — ${d.endDate} (${d.duration})</span>
+            ${d.keterangan ? `<span style="font-size:.73rem;color:var(--muted)">${d.keterangan}</span>` : ""}
+          </div>
+          <span class="badge badge-${clsBadge[d.status]||"muted"}">${d.status}</span>
+        </div>`).join("");
+}
+
+// ═══════════════════════════════════════════════════════════
+//  PROFIL
+// ═══════════════════════════════════════════════════════════
+async function loadProfile() {
+  const emp = session?.employee;
+  if (!emp) return;
+
+  document.getElementById("prof-avatar").src = avatarUrl(emp.name);
+  document.getElementById("prof-name").textContent = emp.name;
+  document.getElementById("prof-id").textContent   = emp.id;
+
+  const sc = emp.status === "Active" ? "success" : "danger";
+  document.getElementById("prof-status-badge").innerHTML =
+    `<span class="badge badge-${sc}">${emp.status}</span>`;
+
+  // Tampilkan field profil (sekarang termasuk phone)
+  const fields = [
+    ["pi-email",   emp.email],
+    ["pi-phone",   emp.phone || "—"],
+    ["pi-unit",    emp.unitKerja],
+    ["pi-jabatan", emp.jabatan],
+    ["pi-shift",   emp.shift],
+    ["pi-join",    emp.joinDate]
+  ];
+  fields.forEach(([id, val]) => {
+    const el  = document.getElementById(id);
+    const lbl = el.dataset.label;
+    el.innerHTML = `
+      <div style="background:#f0fdfa;border-radius:8px;padding:.6rem">
+        <div style="font-size:.68rem;color:var(--muted)">${lbl}</div>
+        <div style="font-size:.83rem;font-weight:600;margin-top:.15rem">${val || "—"}</div>
+      </div>`;
+  });
+
+  // Statistik bulan ini
+  try {
+    const now = new Date();
+    const r = await api("getAttendance", {
+      id_karyawan : emp.id,
+      month       : now.getMonth() + 1,
+      year        : now.getFullYear()
+    });
+    if (r.status === "ok") {
+      let h = 0, t = 0, a = 0;
+      r.data.forEach(d => {
+        if (d.status === "Hadir") h++;
+        else if (d.status === "Terlambat") t++;
+        else a++;
+      });
+      document.getElementById("prof-stats").innerHTML = `
+        <div class="stat-card blue"><h3>${r.data.length}</h3><p>Total Absensi</p></div>
+        <div class="stat-card green"><h3>${h}</h3><p>Hadir</p></div>
+        <div class="stat-card yellow"><h3>${t}</h3><p>Terlambat</p></div>
+        <div class="stat-card red"><h3>${a}</h3><p>Alpha</p></div>`;
+    }
+  } catch (e) {}
+}
+
+// ═══════════════════════════════════════════════════════════
+//  ADMIN
+// ═══════════════════════════════════════════════════════════
+async function loadAdminDashboard() {
+  showLoading("Memuat dashboard...");
+  try {
+    // Stats
+    const r = await api("getDashboard");
+    if (r.status === "ok") {
+      const d = r.data;
+      document.getElementById("admin-stats").innerHTML = `
+        <div class="stat-card blue"><h3>${d.totalKaryawan}</h3><p>Total Karyawan Aktif</p></div>
+        <div class="stat-card green"><h3>${d.todayHadir}</h3><p>Hadir Hari Ini</p></div>
+        <div class="stat-card yellow"><h3>${d.todayTerlambat}</h3><p>Terlambat</p></div>
+        <div class="stat-card red"><h3>${d.todayAlpha}</h3><p>Alpha</p></div>`;
+      renderWeeklyChart(d.weekly);
+    }
+  } catch (e) {}
+
+  // Karyawan
+  try {
+    const r = await api("getEmployees");
+    if (r.status === "ok") {
+      document.getElementById("emp-table-body").innerHTML = r.data.map(e => `
+        <tr>
+          <td>${e.id}</td><td>${e.name}</td>
+          <td>${e.phone || "—"}</td>
+          <td>${e.unitKerja}</td><td>${e.jabatan}</td><td>${e.shift || "—"}</td>
+          <td><span class="badge badge-${e.status==="Active"?"success":"danger"}">${e.status}</span></td>
+        </tr>`).join("");
+    }
+  } catch (e) {}
+
+  // Settings
+  try {
+    const r = await api("getSettings");
+    if (r.status === "ok") {
+      const s = r.data;
+      document.getElementById("set-company").value = s.Company_Name || "";
+      document.getElementById("set-late").value    = s.Late_Tolerance || 15;
+      document.getElementById("set-radius").value  = s.Geo_Radius || 100;
+      document.getElementById("set-lat").value     = s.Geo_Lat || "";
+      document.getElementById("set-lng").value     = s.Geo_Lng || "";
+      document.getElementById("set-geo").checked   = s.Geo_Enabled === "True" || s.Geo_Enabled === true;
+      document.getElementById("set-face").checked  = s.Face_Recognition === "True" || s.Face_Recognition === true;
+    }
+  } catch (e) {}
+
+  // Approval menunggu
+  try {
+    const r = await api("getApprovals", { status: "MENUNGGU" });
+    if (r.status === "ok") {
+      const el = document.getElementById("admin-approvals");
+      el.innerHTML = r.data.length === 0
+        ? `<p style="color:var(--muted);text-align:center;padding:1rem">Tidak ada pengajuan menunggu.</p>`
+        : r.data.map(d => `
+            <div class="hist-item">
+              <div style="flex:1">
+                <strong>${d.nama}</strong> — ${d.type}
+                <span style="display:block;font-size:.75rem;color:var(--muted)">
+                  ${d.startDate} — ${d.endDate} (${d.duration})</span>
+                ${d.keterangan ? `<span style="font-size:.73rem;color:var(--muted)">${d.keterangan}</span>` : ""}
+              </div>
+              <div style="display:flex;gap:.4rem">
+                <button class="btn btn-success" style="padding:.3rem .7rem;font-size:.75rem"
+                  onclick="approveApp('${d.no}','DITERIMA')">✅</button>
+                <button class="btn btn-danger" style="padding:.3rem .7rem;font-size:.75rem"
+                  onclick="approveApp('${d.no}','DITOLAK')">❌</button>
+              </div>
+            </div>`).join("");
+    }
+  } catch (e) {}
+
+  hideLoading();
+}
+
+function renderWeeklyChart(weekly) {
+  const maxVal = Math.max(...weekly.map(w => w.hadir + w.terlambat), 1);
+  document.getElementById("weekly-chart").innerHTML = `
+    <div class="chart-row">
+      ${weekly.map(w => {
+        const hh = Math.round((w.hadir     / maxVal) * 70);
+        const th = Math.round((w.terlambat / maxVal) * 70);
+        return `<div class="bar-wrap">
+          <div class="bar h" style="height:${hh}px" title="${w.hadir} Hadir"></div>
+          <div class="bar t" style="height:${th}px" title="${w.terlambat} Terlambat"></div>
+          <span class="bar-label">${w.day}</span>
+        </div>`;
+      }).join("")}
+    </div>`;
+}
+
+async function loadAdminAtt() {
+  showLoading("Memuat data...");
+  try {
+    const month = document.getElementById("adm-month").value;
+    const year  = document.getElementById("adm-year").value;
+    const r = await api("getAttendance", { month, year });
+    if (r.status === "ok") {
+      document.getElementById("adm-table-body").innerHTML = r.data.map(d => `
+        <tr>
+          <td>${d.id}</td><td>${d.nama}</td><td>${d.date}</td>
+          <td>${d.hari||"—"}</td><td>${d.shift||"—"}</td>
+          <td>${d.clockIn||"—"}</td><td>${d.clockOut||"—"}</td>
+          <td>${d.durasi ? d.durasi+" jam" : "—"}</td>
+          <td><span class="badge badge-${d.status==="Hadir"?"success":d.status==="Terlambat"?"warning":"danger"}">
+            ${d.status||"?"}</span></td>
+          <td style="font-size:.72rem;max-width:140px;overflow:hidden;text-overflow:ellipsis;
+            white-space:nowrap" title="${d.address}">${d.address ? "📍"+d.address.substring(0,30)+"..." : "—"}</td>
+        </tr>`).join("");
+    }
+  } catch (e) {}
+  hideLoading();
+}
+
+async function approveApp(no, status) {
+  showLoading("Memproses...");
+  try {
+    const r = await apiPost("updateApproval", {
+      no, status,
+      approvedBy: session?.name || "Admin"
+    });
+    if (r.status === "ok") {
+      showToast(`✅ Status diubah menjadi ${status}`);
+      loadAdminDashboard();
+    } else showToast(r.message, "error");
+  } catch (e) {}
+  hideLoading();
+}
+
+async function saveSettings() {
+  showLoading("Menyimpan...");
+  try {
+    const r = await apiPost("updateSettings", {
+      Late_Tolerance   : document.getElementById("set-late").value,
+      Geo_Radius       : document.getElementById("set-radius").value,
+      Geo_Lat          : document.getElementById("set-lat").value,
+      Geo_Lng          : document.getElementById("set-lng").value,
+      Geo_Enabled      : document.getElementById("set-geo").checked  ? "True" : "False",
+      Face_Recognition : document.getElementById("set-face").checked ? "True" : "False"
+    });
+    if (r.status === "ok") showToast("✅ Settings berhasil disimpan!");
+    else showToast(r.message, "error");
+  } catch (e) {}
+  hideLoading();
+}
+
+async function exportCSV() {
+  const month = document.getElementById("adm-month").value;
+  const year  = document.getElementById("adm-year").value;
+  showLoading("Menyiapkan export...");
+  try {
+    const r = await api("exportAttendance", { month, year });
+    if (r.status === "ok") {
+      const rows = [["ID","Nama","Tanggal","Hari","Shift","Clock In","Clock Out","Durasi (jam)","Status","Alamat"]];
+      r.data.forEach(d => rows.push([d.id_karyawan,d.nama,d.date,d.hari,d.shift,
+        d.clockIn,d.clockOut,d.durasi,d.status,d.address]));
+      const csv  = rows.map(r => r.map(c => `"${c||""}"`).join(",")).join("\n");
+      const blob = new Blob(["\uFEFF"+csv], { type: "text/csv;charset=utf-8" });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement("a");
+      a.href = url;
+      a.download = `Absensi_${MONTHS[(parseInt(month)||new Date().getMonth()+1)-1]}_${year}.csv`;
+      a.click();
+      showToast("📥 File CSV berhasil diunduh!");
+    }
+  } catch (e) {}
+  hideLoading();
+}
+
+// ═══════════════════════════════════════════════════════════
+//  TAB SWITCHING
+// ═══════════════════════════════════════════════════════════
+const TAB_IDS = ["absensi","riwayat","izin","profil","admin"];
+
+function switchTab(btn) {
+  const tab = btn.dataset.tab;
+  document.querySelectorAll(".tab-btn").forEach(b => b.classList.remove("active"));
+  btn.classList.add("active");
+  TAB_IDS.forEach(id => {
+    document.getElementById(`tab-${id}`).style.display = id === tab ? "" : "none";
+  });
+
+  if (tab === "riwayat") loadHistory();
+  if (tab === "izin")    loadApprovals();
+  if (tab === "admin")   loadAdminDashboard();
+  if (tab === "profil")  loadProfile();
+  if (tab === "absensi") {
+    if (!stream && faceModelsLoaded) startCamera();
+    loadTodayStatus();
+  }
+}
+
+// ═══════════════════════════════════════════════════════════
+//  INIT
+// ═══════════════════════════════════════════════════════════
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("app").style.display = "none";
+});
+</script>
+</body>
+</html>
